@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, ShoppingBag, Utensils, Smartphone, Film, Home, Car, GraduationCap, Heart, Plus } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Utensils, Smartphone, Film, Home, Car, GraduationCap, Heart, Plus, DollarSign, Briefcase, TrendingUp } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 export default function CategoryManagementScreen() {
@@ -102,6 +102,3 @@ export default function CategoryManagementScreen() {
     </div>
   );
 }
-
-// Import missing icons
-import { DollarSign, Briefcase, TrendingUp } from 'lucide-react';

@@ -26,7 +26,7 @@ export default function DashboardScreen() {
         }
         const fileId = files[0].id;
         localStorage.setItem('file_id', fileId);
-        
+
         const now = new Date();
         const dashboard = await api.getDashboard(userId, fileId, now.getFullYear(), now.getMonth() + 1);
         setData(dashboard);
@@ -47,11 +47,6 @@ export default function DashboardScreen() {
     { label: 'Remaining', value: `$${data.budget.remaining}`, icon: DollarSign, color: 'text-[#009688]', bgColor: 'bg-teal-50', highlight: true },
     { label: 'Top Category', value: data.monthly_summary.top_category, icon: Calendar, color: 'text-gray-700', bgColor: 'bg-gray-50' },
   ] : [];
-    { label: 'Income', value: '$8,500', icon: TrendingUp, color: 'text-[#4CAF50]', bgColor: 'bg-green-50' },
-    { label: 'Expense', value: '$5,200', icon: TrendingDown, color: 'text-[#F44336]', bgColor: 'bg-red-50' },
-    { label: 'Total Balance', value: '$3,300', icon: DollarSign, color: 'text-[#009688]', bgColor: 'bg-teal-50', highlight: true },
-    { label: 'Date', value: 'Feb 2026', icon: Calendar, color: 'text-gray-700', bgColor: 'bg-gray-50' },
-  ];
 
   const transactions = data ? data.recent_expenses.map((e: any) => ({
     category: e.category || 'Uncategorized',
@@ -79,7 +74,7 @@ export default function DashboardScreen() {
       {/* Summary Cards */}
       <div className="p-4">
         <div className="grid grid-cols-2 gap-2">
-          {summaryData.map((item, index) => {
+          {summaryData.map((item: any, index: number) => {
             const Icon = item.icon;
             return (
               <div
@@ -107,7 +102,7 @@ export default function DashboardScreen() {
       <div className="px-4 mt-4">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Recent Transactions</h2>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 divide-y divide-gray-100">
-          {transactions.map((transaction, index) => (
+          {transactions.map((transaction: any, index: number) => (
             <TransactionItem
               key={index}
               category={transaction.category}
