@@ -1,5 +1,4 @@
-const HOSTNAME = window.location.hostname;
-const API_URL = `http://${HOSTNAME}:8000/api`;
+const API_URL = 'https://expenses-tracker-v19g.onrender.com/api';
 
 export const api = {
   getAuthHeader() {
