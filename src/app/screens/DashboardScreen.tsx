@@ -1,7 +1,7 @@
-import { ChevronDown, Search, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { TransactionItem } from '../components/TransactionItem';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { api } from '../../lib/api';
 
@@ -9,6 +9,11 @@ export default function DashboardScreen() {
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  );
+  const monthInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,14 +65,21 @@ export default function DashboardScreen() {
       {/* Top App Bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-between">
-          <button className="flex items-center gap-1 text-gray-700 font-medium">
-            March
-            <ChevronDown className="w-4 h-4" />
+          <button
+            className="flex items-center gap-1 text-gray-700 font-medium"
+            onClick={() => monthInputRef.current?.showPicker()}
+          >
+            <Calendar className="w-4 h-4" />
+            {new Date(selectedMonth + '-01').toLocaleString('default', { month: 'long', year: 'numeric' })}
           </button>
           <h1 className="text-lg font-semibold text-gray-900">Expense Tracker</h1>
-          <button>
-            <Search className="w-5 h-5 text-gray-700" />
-          </button>
+          <input
+            ref={monthInputRef}
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="sr-only"
+          />
         </div>
       </div>
 
