@@ -1,7 +1,7 @@
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { TransactionItem } from '../components/TransactionItem';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { api } from '../../lib/api';
 
@@ -9,11 +9,6 @@ export default function DashboardScreen() {
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  );
-  const monthInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +45,7 @@ export default function DashboardScreen() {
     { label: 'Total Spend', value: `$${data.monthly_summary.total_spend}`, icon: TrendingDown, color: 'text-[#F44336]', bgColor: 'bg-red-50' },
     { label: 'Budget', value: `$${data.budget.total}`, icon: TrendingUp, color: 'text-[#4CAF50]', bgColor: 'bg-green-50' },
     { label: 'Remaining', value: `$${data.budget.remaining}`, icon: DollarSign, color: 'text-[#009688]', bgColor: 'bg-teal-50', highlight: true },
-    { label: 'Top Category', value: data.monthly_summary.top_category, icon: Calendar, color: 'text-gray-700', bgColor: 'bg-gray-50' },
+    { label: 'Top Category', value: data.monthly_summary.top_category, icon: DollarSign, color: 'text-gray-700', bgColor: 'bg-gray-50' },
   ] : [];
 
   const transactions = data ? data.recent_expenses.map((e: any) => ({
@@ -65,21 +60,11 @@ export default function DashboardScreen() {
       {/* Top App Bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-between">
-          <button
-            className="flex items-center gap-1 text-gray-700 font-medium"
-            onClick={() => monthInputRef.current?.showPicker()}
-          >
-            <Calendar className="w-4 h-4" />
-            {new Date(selectedMonth + '-01').toLocaleString('default', { month: 'long', year: 'numeric' })}
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900">Expense Tracker</h1>
-          <input
-            ref={monthInputRef}
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="sr-only"
-          />
+          <span className="text-sm text-gray-500">
+            {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+          <h1 className="text-lg font-semibold text-gray-900 absolute left-1/2 -translate-x-1/2">Expense Tracker</h1>
+          <div className="w-5" />
         </div>
       </div>
 
