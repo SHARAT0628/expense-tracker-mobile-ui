@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, User, Hash, HelpCircle, Palette, Settings, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, Hash, Settings, ChevronRight } from 'lucide-react';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
@@ -22,8 +22,6 @@ export default function ProfileScreen() {
   ];
 
   const menuItems = [
-    { icon: HelpCircle, label: 'Help', action: () => {} },
-    { icon: Palette, label: 'Customize', action: () => {} },
     { icon: Settings, label: 'Settings', action: () => navigate('/settings') },
   ];
 
