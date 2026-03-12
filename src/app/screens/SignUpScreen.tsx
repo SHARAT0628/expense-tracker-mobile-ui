@@ -28,8 +28,8 @@ export default function SignUpScreen() {
       return;
     }
     try {
-      await api.register(formData.email, formData.password);
-      const res = await api.login(formData.email, formData.password);
+      await api.register(formData.fullName, formData.password);
+      const res = await api.login(formData.fullName, formData.password);
       localStorage.setItem('user_id', res.user_id);
       localStorage.setItem('token', res.token);
       navigate('/dashboard');
@@ -57,7 +57,7 @@ export default function SignUpScreen() {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               type="text"
-              placeholder="Full Name"
+              placeholder="Username"
               value={formData.fullName}
               onChange={(e) => handleChange('fullName', e.target.value)}
               className="pl-12 h-14 rounded-xl border-gray-200 focus:border-[#009688] focus:ring-[#009688]"

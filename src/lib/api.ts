@@ -52,5 +52,11 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to add expense');
     return res.json();
+  },
+
+  async getProfile(userId: string | number) {
+    const res = await fetch(`${API_URL}/profile?user_id=${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch profile');
+    return res.json();
   }
 };

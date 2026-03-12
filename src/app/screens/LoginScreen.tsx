@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Mail, Lock, Eye, EyeOff, Wallet } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, Wallet } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { api } from '../../lib/api';
@@ -8,13 +8,13 @@ import { api } from '../../lib/api';
 export default function LoginScreen() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await api.login(email, password);
+      const res = await api.login(username, password);
       localStorage.setItem('user_id', res.user_id);
       localStorage.setItem('token', res.token);
       navigate('/dashboard');
@@ -42,12 +42,12 @@ export default function LoginScreen() {
           {/* Email Input */}
           <div className="space-y-2">
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Email / Phone"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="pl-12 h-14 rounded-xl border-gray-200 focus:border-[#009688] focus:ring-[#009688]"
               />
             </div>
