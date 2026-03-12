@@ -58,5 +58,31 @@ export const api = {
     const res = await fetch(`${API_URL}/profile?user_id=${userId}`);
     if (!res.ok) throw new Error('Failed to fetch profile');
     return res.json();
+  },
+
+  async createFile(userId: string | number, name: string) {
+    const res = await fetch(`${API_URL}/files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, name })
+    });
+    if (!res.ok) throw new Error('Failed to create file');
+    return res.json();
+  },
+
+  async getCategories(userId: string | number) {
+    const res = await fetch(`${API_URL}/categories?user_id=${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch categories');
+    return res.json();
+  },
+
+  async createCategory(userId: string | number, name: string) {
+    const res = await fetch(`${API_URL}/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, name })
+    });
+    if (!res.ok) throw new Error('Failed to create category');
+    return res.json();
   }
 };

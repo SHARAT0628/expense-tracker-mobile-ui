@@ -1,34 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { api } from '../../lib/api';
+
+const COLORS = ['#F44336', '#FF9800', '#2196F3', '#4CAF50', '#9C27B0', '#009688', '#FF5722', '#607D8B'];
 
 export default function ReportsScreen() {
+  const navigate = useNavigate();
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
-  const lineData = [
-    { name: 'Jan', value: 4200 },
-    { name: 'Feb', value: 5200 },
-    { name: 'Mar', value: 4800 },
-    { name: 'Apr', value: 6100 },
-    { name: 'May', value: 5500 },
-    { name: 'Jun', value: 4900 },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = localStorage.getItem('user_id');
+        const fileId = localStorage.getItem('file_id');
+        if (!userId) { navigate('/'); return; }
+        if (!fileId || fileId === '0') { setLoading(false); return; }
+        const data = await api.getExpenses(userId, fileId);
+        setExpenses(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [navigate]);
 
-  const pieData = [
-    { name: 'Food', value: 1200, color: '#F44336' },
-    { name: 'Shopping', value: 1800, color: '#FF9800' },
-    { name: 'Transport', value: 800, color: '#2196F3' },
-    { name: 'Health', value: 600, color: '#4CAF50' },
-    { name: 'Other', value: 800, color: '#9C27B0' },
-  ];
+  // Filter based on selected time range
+  const now = new Date();
+  const filtered = expenses.filter((e) => {
+    const d = new Date(e.date);
+    if (timeRange === 'weekly') {
+      const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+      return d >= weekAgo;
+    } else if (timeRange === 'monthly') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } else {
+      return d.getFullYear() === now.getFullYear();
+    }
+  });
 
-  const monthlyStats = [
-    { label: 'Expense', value: '$5,200', color: 'text-[#F44336]' },
-    { label: 'Income', value: '$8,500', color: 'text-[#4CAF50]' },
-    { label: 'Total Balance', value: '$3,300', color: 'text-[#009688]' },
-  ];
+  const totalSpend = filtered.reduce((sum: number, e: any) => sum + e.amount, 0);
 
-  const budgetPercentage = 65;
+  // Group by title (category name)
+  const categoryMap: Record<string, number> = {};
+  filtered.forEach((e: any) => {
+    const key = e.title || 'Other';
+    categoryMap[key] = (categoryMap[key] || 0) + e.amount;
+  });
+  const pieData = Object.entries(categoryMap).map(([name, value], i) => ({
+    name, value, color: COLORS[i % COLORS.length]
+  }));
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -40,142 +68,85 @@ export default function ReportsScreen() {
       {/* Segmented Control */}
       <div className="px-4 pt-6 pb-4">
         <div className="flex bg-gray-100 rounded-xl p-1">
-          <button
-            onClick={() => setTimeRange('weekly')}
-            className={`flex-1 py-2 rounded-lg font-medium text-sm transition-colors ${
-              timeRange === 'weekly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => setTimeRange('monthly')}
-            className={`flex-1 py-2 rounded-lg font-medium text-sm transition-colors ${
-              timeRange === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setTimeRange('yearly')}
-            className={`flex-1 py-2 rounded-lg font-medium text-sm transition-colors ${
-              timeRange === 'yearly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            Yearly
-          </button>
+          {(['weekly', 'monthly', 'yearly'] as const).map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`flex-1 py-2 rounded-lg font-medium text-sm capitalize transition-colors ${
+                timeRange === range ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              }`}
+            >
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="px-4 space-y-6">
-        {/* Line Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Spending Trend</h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" stroke="#999" style={{ fontSize: '12px' }} />
-              <YAxis stroke="#999" style={{ fontSize: '12px' }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#009688" strokeWidth={2} dot={{ fill: '#009688' }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <span className="text-3xl">📊</span>
+            </div>
+            <h3 className="text-gray-700 font-semibold text-lg mb-1">No transactions yet</h3>
+            <p className="text-gray-400 text-sm">Add some transactions to see your reports here.</p>
+          </div>
+        ) : (
+          <>
+            {/* Total Spend */}
+            <div className="bg-gradient-to-br from-[#009688] to-[#00796B] rounded-xl p-5 text-white">
+              <p className="text-sm opacity-80 mb-1">Total Spend ({timeRange})</p>
+              <p className="text-3xl font-bold">₹{totalSpend.toFixed(2)}</p>
+              <p className="text-sm opacity-70 mt-1">{filtered.length} transaction{filtered.length !== 1 ? 's' : ''}</p>
+            </div>
 
-        {/* Pie Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Category Breakdown</h2>
-          <div className="flex items-center justify-between">
-            <ResponsiveContainer width="50%" height={150}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={60}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex-1 space-y-2">
-              {pieData.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-gray-600">{item.name}</span>
-                  <span className="text-xs font-semibold ml-auto">${item.value}</span>
+            {/* Pie Chart */}
+            {pieData.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">Category Breakdown</h2>
+                <div className="flex items-center justify-between">
+                  <ResponsiveContainer width="50%" height={150}>
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
+                        {pieData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex-1 space-y-2 pl-2">
+                    {pieData.map((item) => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-xs text-gray-600 flex-1 truncate">{item.name}</span>
+                        <span className="text-xs font-semibold">₹{item.value.toFixed(0)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
+            )}
 
-        {/* Monthly Statistics */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Monthly Statistics</h2>
-          <div className="space-y-3">
-            {monthlyStats.map((stat) => (
-              <div key={stat.label} className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">{stat.label}</span>
-                <span className={`font-semibold ${stat.color}`}>{stat.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Budget Progress */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Budget Overview</h2>
-          <div className="flex flex-col items-center">
-            <div className="relative w-32 h-32 mb-4">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  stroke="#f0f0f0"
-                  strokeWidth="12"
-                  fill="none"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  stroke="#009688"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray={`${budgetPercentage * 3.51} 351`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">{budgetPercentage}%</span>
+            {/* Transaction List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h2 className="text-base font-semibold text-gray-900 mb-3">Transactions</h2>
+              <div className="divide-y divide-gray-100">
+                {filtered.map((e: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center py-3">
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">{e.title}</p>
+                      <p className="text-xs text-gray-400">{e.date}</p>
+                    </div>
+                    <span className="font-semibold text-[#F44336]">-₹{parseFloat(e.amount).toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="w-full space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Budget</span>
-                <span className="font-semibold">$8,000</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Expenses</span>
-                <span className="font-semibold text-[#F44336]">$5,200</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Remaining</span>
-                <span className="font-semibold text-[#4CAF50]">$2,800</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNavigation />
     </div>
   );
